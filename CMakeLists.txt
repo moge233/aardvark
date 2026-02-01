@@ -10,12 +10,13 @@ set(
 	main.cpp
 	drivers/src/led.cpp
 	drivers/src/usbtmc.cpp
-	platform/src/blockingqueue.cpp
+	platform/src/circularbuffer.cpp
 	platform/src/commandinterface.cpp
 	platform/src/commandmessage.cpp
 	platform/src/errors.cpp
 	platform/src/logicaldevice.cpp
 	platform/src/lua.cpp
+	platform/src/osalthread.cpp
 	platform/src/scriptprocessor.cpp
 	platform/src/status.cpp
 )
@@ -34,7 +35,8 @@ set_target_properties(
 
 add_executable(aardvark ${SOURCES})
 
-# target_compile_definitions(aardvark PRIVATE DAEMONIZE)
+target_compile_definitions(aardvark PRIVATE DAEMONIZE)
+# target_compile_definitions(aardvark PRIVATE MESSAGE_TESTING)
 
 target_include_directories(
 	aardvark
