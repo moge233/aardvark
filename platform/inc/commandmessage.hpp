@@ -8,16 +8,12 @@
 #ifndef AARDVARK_PLATFORM_INC_COMMANDMESSAGE_HPP_
 #define AARDVARK_PLATFORM_INC_COMMANDMESSAGE_HPP_
 
-
 #include <cstddef>
-
-#include "pthread.h"
-
 
 class CommandMessage
 {
 public:
-	CommandMessage(void) : mMessage{nullptr}, mLength{0} { }
+	CommandMessage(void);
 	CommandMessage(const char *lMessage, unsigned long lLength);
 	~CommandMessage();
 	CommandMessage(CommandMessage& lOther);
@@ -28,7 +24,6 @@ public:
 private:
 	char *mMessage;
 	unsigned long mLength;
-	pthread_t mOrigin;
 };
 
 

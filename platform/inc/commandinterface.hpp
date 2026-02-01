@@ -8,20 +8,24 @@
 #ifndef AARDVARK_PLATFORM_INC_COMMANDINTERFACE_HPP_
 #define AARDVARK_PLATFORM_INC_COMMANDINTERFACE_HPP_
 
+#include <cstdint>
+
 #include "commandmessage.hpp"
-#include "messagepipe.hpp"
+#include "circulbarbuffer.hpp"
+#include "osalthread.hpp"
 
 class CommandInterface
 {
 public:
-	CommandInterface(void);
+	CommandInterface(void *lOwner, size_t lInputQueueCapacity, size_t lOutputQueueCapacity);
 	~CommandInterface();
-
-// TODO: BlockingQueue
+	CommandMessage *ReceiveMessage(void);
+	int SendMessage(OsalThread *lDestination, CommandMessage *lMessage);
 
 private:
-// TODO: BlockingQueue
-
+	void *mOwner;
+	CircularBuffer mInputQueue;
+	CircularBuffer mOutputQueue;
 };
 
 

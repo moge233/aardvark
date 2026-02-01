@@ -54,23 +54,12 @@ ScriptProcessor::ScriptProcessor(void)
 {
 	memset(&mOutputBuffer[0], 0, OUTPUT_BUFFER_SIZE);
 
-	mCommandQueue = new BlockingQueue(512);
-	mDataQueue = new BlockingQueue(512);
-
 	InstallTokenHandlers();
 	StartLua();
 }
 
 ScriptProcessor::~ScriptProcessor()
 {
-	if (mCommandQueue)
-	{
-		delete mCommandQueue;
-	}
-	if (mDataQueue)
-	{
-		delete mDataQueue;
-	}
 }
 
 int ScriptProcessor::InfoHandler(lua_State *lState) {

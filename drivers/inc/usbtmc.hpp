@@ -18,6 +18,7 @@
 #include <linux/usb/g_tmc.h>
 
 #include "commandinterface.hpp"
+#include "osalthread.hpp"
 
 
 constexpr char TMC_DEVICE_PATH[] = "/dev/tmc";
@@ -40,6 +41,16 @@ private:
 	struct UsbTmcXferBuffer mXferBuffers[16];
 	size_t mBulkXferIndex;
 	gadget_tmc_header mHeader;
+	OsalThread *mOwner;
+
+public:
+	UsbTmc(OsalThread *lOwner);
+	~UsbTmc();
+	void Main(void);
+
+	inline const int &GetFileDescriptor() { return mFileDescriptor; }
+	inline void SetOwner(OsalThread *lOwner) { mOwner = lOwner; }
+	inline OsalThread *GetOwner(void) { return mOwner; }
 
 	void ServiceBulkOut(gadget_tmc_header *lHeader);
 	void ServiceBulkIn(gadget_tmc_header *lHeader);
@@ -50,11 +61,6 @@ private:
 	void AbortBulkIn(void);
 	void SetREN(uint8_t lNewREN);
 	uint8_t GetREN(void);
-
-public:
-	UsbTmc(void);
-	~UsbTmc();
-	void Main(void);
 
 	void SetRemoteLocalState(gadget_tmc488_localremote_state lNewState);
 	gadget_tmc488_localremote_state GetRemoteLocalState(void);

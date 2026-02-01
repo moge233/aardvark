@@ -28,15 +28,8 @@
 
 using namespace std;
 
-#ifdef RUN_DAEMON
-static int InitDaemon(void);
-#endif
-static void StartThreads(void);
-
-extern ScriptProcessor *gScriptProcessor;
-
-UsbTmc::UsbTmc(void)
-: CommandInterface()
+UsbTmc::UsbTmc(OsalThread *lOwner)
+: CommandInterface(lOwner, 50, 50)
 , mBulkXferIndex(0)
 , mHeader({0})
 {
@@ -137,12 +130,13 @@ void UsbTmc::ServiceBulkOut(gadget_tmc_header *lHeader)
 		exit(EXIT_FAILURE);
 	}
 
-	gScriptProcessor->Submit(lMessage);
+	extern OsalThread *gScriptProcessorThread2;
+	SendMessage(gScriptProcessorThread2, lMessage);
 }
 
 void UsbTmc::ServiceBulkIn(gadget_tmc_header *lHeader)
 {
-	CommandMessage *lMessage = gScriptProcessor->GetResponse();
+	CommandMessage *lMessage = ReceiveMessage();
 	if (lMessage)
 	{
 		if (lMessage->GetLength() > 0)

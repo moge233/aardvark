@@ -10,8 +10,6 @@
 
 #include <pthread.h>
 
-#include "blockingqueue.hpp"
-#include "messagepipe.hpp"
 #include "lua.hpp"
 
 constexpr unsigned int ASCII_DEFAULT_PRECISION = 6;
@@ -101,9 +99,6 @@ private:
 
 	TokenHandler mTokenHandlers[mNumTokens] = { static_cast<TokenHandler>(nullptr) };
 
-	BlockingQueue *mCommandQueue;	// Incoming
-	BlockingQueue *mDataQueue;		// Outgoing
-
 public:
 	ScriptProcessor(void);
 	~ScriptProcessor();
@@ -130,14 +125,6 @@ public:
 	inline void ClearData(void) { Lock(); memset(&mOutputBuffer[0], 0, OUTPUT_BUFFER_SIZE); Unlock(); }
 	inline unsigned int GetCount(void) { return mOutputBytes; }
 	inline void ClearCount(void) { Lock(); mOutputBytes = 0; Unlock(); }
-
-	// For script processor
-	inline CommandMessage *Receive(void) { return mCommandQueue->Pop(); }
-	inline void Send(CommandMessage *lMessage) { return mDataQueue->Push(lMessage); }
-
-	// For command interface side
-	inline CommandMessage *GetResponse(void) { return mDataQueue->Pop(); }
-	inline void Submit(CommandMessage *lMessage) { return mCommandQueue->Push(lMessage); }
 };
 
 class StatelessScriptProcessor : ScriptProcessor

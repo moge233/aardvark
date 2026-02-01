@@ -13,19 +13,29 @@
 
 #include "commandmessage.hpp"
 
+CommandMessage::CommandMessage(void)
+{
+	CommandMessage(static_cast<char *>(nullptr), 0);
+}
 
 CommandMessage::CommandMessage(const char *lMessage, unsigned long lLength)
 : mLength{lLength}
-, mOrigin(pthread_self())
 {
-	mMessage = new char [mLength + 1];
-	if (!mMessage)
+	if (mLength)
 	{
-		exit(EXIT_FAILURE);
-	}
+		mMessage = new char [mLength + 1];
+		if (!mMessage)
+		{
+			exit(EXIT_FAILURE);
+		}
 
-	memcpy(reinterpret_cast<void *>(const_cast<char *>(mMessage)), lMessage, mLength);
-	mMessage[mLength] = '\0';
+		memcpy(reinterpret_cast<void *>(const_cast<char *>(mMessage)), lMessage, mLength);
+		mMessage[mLength] = '\0';
+	}
+	else
+	{
+		mMessage = static_cast<char *>(nullptr);
+	}
 }
 
 CommandMessage::~CommandMessage(void)
