@@ -168,7 +168,6 @@ static void *ThreadFxn1(void *lArg)
 	OsalThread *lThisThread = reinterpret_cast<OsalThread *>(lArg);
 	while (!gStop)
 	{
-		char lBuffer[1024]{{}};
 		CommandMessage *lMessage = lThisThread->Receive();
 		if (lMessage)
 		{
