@@ -26,8 +26,6 @@ OsalThread *gScriptProcessorThread2;
 OsalThread *gUsbTmcThread2;
 
 static int InitDaemon(void);
-static void ConfigureThread(pthread_attr_t *lAttributes, size_t lStackSize, int lPriority);
-static void CreateThread(pthread_t *lThread, pthread_attr_t *lAttributes, void *(*lFxn)(void *), void *lArg);
 static void CreateThreads(void);
 static void JoinThreads(void);
 static void DetachThreads(void);
