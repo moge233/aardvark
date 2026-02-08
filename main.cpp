@@ -16,10 +16,13 @@
 
 #include "display.hpp"
 
-static void *ScriptProcessorThreadFxn(void *lArg);
-static void *UsbTmcThreadFxn(void *lArg);
 OsalThread *gScriptProcessorThread;
 OsalThread *gUsbTmcThread;
+ScriptProcessor *gScriptProcessor;
+#ifdef BUILD_WITH_DISPLAY
+AardvarkDisplay *gDisplay;
+#endif
+std::atomic<bool> gStop{false};
 
 #ifdef DAEMONIZE
 static int InitDaemon(void);
@@ -29,12 +32,8 @@ static void JoinThreads(void);
 static void DetachThreads(void);
 static void DeleteThreads(void);
 static void SignalHandler(int lSignal);
-
-ScriptProcessor *gScriptProcessor;
-#ifdef BUILD_WITH_DISPLAY
-AardvarkDisplay *gDisplay;
-#endif
-std::atomic<bool> gStop{false};
+static void *ScriptProcessorThreadFxn(void *lArg);
+static void *UsbTmcThreadFxn(void *lArg);
 
 int main(int argc, char *argv[])
 {
