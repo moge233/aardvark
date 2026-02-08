@@ -14,16 +14,12 @@
 #include "scriptprocessor.hpp"
 #include "usbtmc.hpp"
 
-static void *ThreadFxn1(void *lArg);
-static void *ThreadFxn2(void *lArg);
-static void *ThreadFxn3(void *lArg);
-static void *ScriptProcessorThreadFxn2(void *lArg);
-static void *UsbTmcThreadFxn2(void *lArg);
-OsalThread *gThread1;
-OsalThread *gThread2;
-OsalThread *gThread3;
-OsalThread *gScriptProcessorThread2;
-OsalThread *gUsbTmcThread2;
+#include "display.hpp"
+
+static void *ScriptProcessorThreadFxn(void *lArg);
+static void *UsbTmcThreadFxn(void *lArg);
+OsalThread *gScriptProcessorThread;
+OsalThread *gUsbTmcThread;
 
 static int InitDaemon(void);
 static void CreateThreads(void);
@@ -34,6 +30,9 @@ static void SignalHandler(int lSignal);
 
 ScriptProcessor *gScriptProcessor;
 UsbTmc *gUsbTmc;
+#ifdef BUILD_WITH_DISPLAY
+AardvarkDisplay *gDisplay;
+#endif
 std::atomic<bool> gStop{false};
 
 int main(int argc, char *argv[])
@@ -42,6 +41,10 @@ int main(int argc, char *argv[])
 	signal(SIGTERM, SignalHandler);
 	signal(SIGUSR1, SignalHandler);
 	signal(SIGUSR2, SignalHandler);
+
+#ifdef BUILD_WITH_DISPLAY
+	gDisplay = new AardvarkDisplay(argc, argv);
+#endif
 
 #ifdef DAEMONIZE
 	InitDaemon();
@@ -124,144 +127,35 @@ static int InitDaemon(void)
 
 static void CreateThreads(void)
 {
-	gThread1 = new OsalThread(5, 1024, ThreadFxn1, static_cast<void *>(nullptr));
-	gThread2 = new OsalThread(4, 1024, ThreadFxn2, static_cast<void *>(nullptr));
-	gThread3 = new OsalThread(3, 1024, ThreadFxn3, static_cast<void *>(nullptr));
-	gScriptProcessorThread2 = new OsalThread(10, 1024, ScriptProcessorThreadFxn2, static_cast<void *>(nullptr));
-	gUsbTmcThread2 = new OsalThread(8, 1024, UsbTmcThreadFxn2, static_cast<void *>(nullptr));
+	gScriptProcessorThread = new OsalThread(10, 1024, ScriptProcessorThreadFxn, static_cast<void *>(nullptr));
+	gUsbTmcThread = new OsalThread(8, 1024, UsbTmcThreadFxn, static_cast<void *>(nullptr));
 }
 
 static void JoinThreads(void)
 {
-	gThread1->Join(nullptr);
-	gThread2->Join(nullptr);
-	gThread3->Join(nullptr);
-	gScriptProcessorThread2->Join(nullptr);
-	gUsbTmcThread2->Join(nullptr);
+	gScriptProcessorThread->Join(nullptr);
+	gUsbTmcThread->Join(nullptr);
 }
 
 static void DetachThreads(void)
 {
-	gThread1->Detach();
-	gThread2->Detach();
-	gThread3->Detach();
-	gScriptProcessorThread2->Detach();
-	gUsbTmcThread2->Detach();
+	gScriptProcessorThread->Detach();
+	gUsbTmcThread->Detach();
 }
 
 static void DeleteThreads(void)
 {
-	delete gThread1;
-	delete gThread2;
-	delete gThread3;
-	delete gScriptProcessorThread2;
-	delete gUsbTmcThread2;
+	delete gScriptProcessorThread;
+	delete gUsbTmcThread;
 }
 
-static void *ThreadFxn1(void *lArg)
+static void *ScriptProcessorThreadFxn(void *lArg)
 {
 	if (!lArg)
 	{
-		std::cout << __func__ << ": lArg is null; exiting..." << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	OsalThread *lThisThread = reinterpret_cast<OsalThread *>(lArg);
-	while (!gStop)
-	{
-		CommandMessage *lMessage = lThisThread->Receive();
-		if (lMessage)
-		{
-			std::cout << "Thread 1 wakes up with a message: " << lMessage->GetData() << std::endl;
-			delete lMessage;
-		}
-		else
-		{
-			std::cout << "Thread 1 woke up and received a null message (" << lMessage << ")" << std::endl;
-		}
-	}
 
-	return static_cast<void *>(nullptr);
-}
-
-static void *ThreadFxn2(void *lArg)
-{
-	if (!lArg)
-	{
-		std::cout << __func__ << ": lArg is null; exiting..." << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	OsalThread *lThisThread = reinterpret_cast<OsalThread *>(lArg);
-	static size_t lCounter{0};
-	while (!gStop)
-	{
-		struct timespec lTimespec;
-		lTimespec.tv_sec = 2;
-		lTimespec.tv_nsec = 250000000;
-		std::cout << "Thread 2 sleeping" << std::endl;
-		while (nanosleep(&lTimespec, &lTimespec) == -1 && errno == EINTR)
-		{
-			continue;
-		}
-		if (++lCounter == 3)
-		{
-			lCounter = 0;
-			const char lBuffer[] = "Hello, Thread 1! From, Thread 2";
-			CommandMessage *lMessage = new CommandMessage(lBuffer, strlen(lBuffer));
-			std::cout << "Thread 2 wakes up and signals Thread 1" << std::endl;
-			lThisThread->Send(gThread1, lMessage);
-		}
-		else
-		{
-			std::cout << "Thread 2 wakes up but does not signal Thread 1" << std::endl;
-		}
-	}
-
-	return static_cast<void *>(nullptr);
-}
-
-static void *ThreadFxn3(void *lArg)
-{
-	if (!lArg)
-	{
-		std::cout << __func__ << ": lArg is null; exiting..." << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	OsalThread *lThisThread = reinterpret_cast<OsalThread *>(lArg);
-	static size_t lCounter{0};
-	while (!gStop)
-	{
-		struct timespec lTimespec;
-		lTimespec.tv_sec = 1;
-		lTimespec.tv_nsec = 0;
-		std::cout << "Thread 3 sleeping" << std::endl;
-		while (nanosleep(&lTimespec, &lTimespec) == -1 && errno == EINTR)
-		{
-			continue;
-		}
-		if (++lCounter == 5)
-		{
-			lCounter = 0;
-			const char lBuffer[] = "Hello, Thread 1! From, Thread 3";
-			CommandMessage *lMessage = new CommandMessage(lBuffer, strlen(lBuffer));
-			std::cout << "Thread 3 wakes up and signals Thread 1" << std::endl;
-			lThisThread->Send(gThread1, lMessage);
-		}
-		else
-		{
-			std::cout << "Thread 3 wakes up but does not signal Thread 1" << std::endl;
-		}
-	}
-
-	return static_cast<void *>(nullptr);
-}
-
-static void *ScriptProcessorThreadFxn2(void *lArg)
-{
-	if (!lArg)
-	{
-		std::cout << __func__ << ": lArg is null; exiting..." << std::endl;
-		exit(EXIT_FAILURE);
-	}
 	OsalThread *lThisThread = reinterpret_cast<OsalThread *>(lArg);
 	while (!gStop)
 	{
@@ -273,8 +167,11 @@ static void *ScriptProcessorThreadFxn2(void *lArg)
 
 			if (gScriptProcessor->GetCount() > 0)
 			{
-				CommandMessage *lReplyMessage = new CommandMessage(gScriptProcessor->GetData(), gScriptProcessor->GetCount());
-				lThisThread->Send(gUsbTmcThread2, lReplyMessage);
+				CommandMessage *lReplyMessage = new CommandMessage(gScriptProcessor->GetData(),
+																   gScriptProcessor->GetCount(),
+																   reinterpret_cast<void *>(lThisThread));
+				OsalThread *lDestination = reinterpret_cast<OsalThread *>(lMessage->GetOrigin());
+				lThisThread->Send(lDestination, lReplyMessage);
 
 				gScriptProcessor->ClearData();
 				gScriptProcessor->ClearCount();
@@ -287,17 +184,17 @@ static void *ScriptProcessorThreadFxn2(void *lArg)
 	return nullptr;
 }
 
-static void *UsbTmcThreadFxn2(void *lArg)
+static void *UsbTmcThreadFxn(void *lArg)
 {
 	if (!lArg)
 	{
-		std::cout << __func__ << ": lArg is null; exiting..." << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	gUsbTmc = new UsbTmc(reinterpret_cast<OsalThread *>(lArg));
+
+	OsalThread *lThisThread = reinterpret_cast<OsalThread *>(lArg);
+	gUsbTmc = new UsbTmc(lThisThread);
 	if (!gUsbTmc)
 	{
-		std::cout << __func__ << ": could not create USB TMC instance; exiting..." << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	while(!gStop)
@@ -337,11 +234,8 @@ void SignalHandler(int lSignal)
 		case SIGINT:
 		case SIGTERM:
 			gStop = true;
-			gThread1->Cancel();
-			gThread2->Cancel();
-			gThread3->Cancel();
-			gScriptProcessorThread2->Cancel();
-			gUsbTmcThread2->Cancel();
+			gScriptProcessorThread->Cancel();
+			gUsbTmcThread->Cancel();
 		break;
 
 		case SIGUSR1:

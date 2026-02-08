@@ -33,10 +33,12 @@ set_target_properties(
 	IMPORTED_INCLUDE_DIRECTORIES /media/matt/HDD1/buildroot_apps/lua-5.4.6/src
 )
 
+add_subdirectory(display)
+
 add_executable(aardvark ${SOURCES})
 
-target_compile_definitions(aardvark PRIVATE DAEMONIZE)
-# target_compile_definitions(aardvark PRIVATE MESSAGE_TESTING)
+# target_compile_definitions(aardvark PRIVATE DAEMONIZE)
+# target_compile_definitions(aardvark PRIVATE BUILD_WITH_DISPLAY)
 
 target_include_directories(
 	aardvark
@@ -49,3 +51,4 @@ target_include_directories(
 target_link_libraries(aardvark PRIVATE -lstdc++)
 target_link_libraries(aardvark PRIVATE m)
 target_link_libraries(aardvark PRIVATE lua)
+target_link_libraries(aardvark PRIVATE display)
