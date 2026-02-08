@@ -41,16 +41,15 @@ private:
 	struct UsbTmcXferBuffer mXferBuffers[16];
 	size_t mBulkXferIndex;
 	gadget_tmc_header mHeader;
-	OsalThread *mOwner;
 
 public:
 	UsbTmc(OsalThread *lOwner);
 	~UsbTmc();
+	UsbTmc(UsbTmc &) = delete;
+	UsbTmc &operator=(UsbTmc &) = delete;
 	void Main(void);
 
 	inline const int &GetFileDescriptor() { return mFileDescriptor; }
-	inline void SetOwner(OsalThread *lOwner) { mOwner = lOwner; }
-	inline OsalThread *GetOwner(void) { return mOwner; }
 
 	void ServiceBulkOut(gadget_tmc_header *lHeader);
 	void ServiceBulkIn(gadget_tmc_header *lHeader);
