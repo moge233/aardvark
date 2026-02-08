@@ -111,11 +111,6 @@ static int InitDaemon(void)
 		delete gScriptProcessor;
 	}
 
-	if (gUsbTmc)
-	{
-		delete gUsbTmc;
-	}
-
     return 0;
 }
 #endif
