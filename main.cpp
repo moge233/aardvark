@@ -14,7 +14,9 @@
 #include "scriptprocessor.hpp"
 #include "usbtmc.hpp"
 
+#ifdef BUILD_WITH_DISPLAY
 #include "display.hpp"
+#endif
 
 OsalThread *gScriptProcessorThread;
 OsalThread *gUsbTmcThread;

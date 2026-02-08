@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 3.10)
 
 project(aardvark VERSION 1.0 LANGUAGES CXX)
 
+option(
+	DISPLAY "Build with display support" OFF
+)
+
+option(
+	DAEMONIZE "Daemonize the process" OFF
+)
+
 set(CMAKE_CXX_COMPILER "/media/matt/HDD1/buildroot-2025.02.10/output/host/bin/aarch64-buildroot-linux-gnu-gcc")
 set(CMAKE_CXX_STANDARD 20)
 
@@ -33,12 +41,20 @@ set_target_properties(
 	IMPORTED_INCLUDE_DIRECTORIES /media/matt/HDD1/buildroot_apps/lua-5.4.6/src
 )
 
-add_subdirectory(display)
+if (DISPLAY)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/display)
+endif()
 
 add_executable(aardvark ${SOURCES})
 
-# target_compile_definitions(aardvark PRIVATE DAEMONIZE)
-# target_compile_definitions(aardvark PRIVATE BUILD_WITH_DISPLAY)
+if (DAEMONIZE)
+	target_compile_definitions(aardvark PUBLIC DAEMONIZE)
+endif()
+
+if (DISPLAY)
+	target_compile_definitions(aardvark PUBLIC BUILD_WITH_DISPLAY)
+	target_include_directories(aardvark PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/display/inc)
+endif()
 
 target_include_directories(
 	aardvark
@@ -51,4 +67,6 @@ target_include_directories(
 target_link_libraries(aardvark PRIVATE -lstdc++)
 target_link_libraries(aardvark PRIVATE m)
 target_link_libraries(aardvark PRIVATE lua)
-target_link_libraries(aardvark PRIVATE display)
+if (DISPLAY)
+	target_link_libraries(aardvark PRIVATE display)
+endif()
