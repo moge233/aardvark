@@ -10,6 +10,7 @@
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -25,6 +26,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+extern OsalThread *gScriptProcessorThread;
 
 using namespace std;
 
@@ -123,15 +126,16 @@ void UsbTmc::ServiceBulkOut(gadget_tmc_header *lHeader)
 		mBulkXferIndex = (++mBulkXferIndex == 16) ? 0 : mBulkXferIndex;
 	} while(lBytesRemaining);
 
-	CommandMessage *lMessage = new CommandMessage(lDataString.c_str(), lDataString.size());
+	CommandMessage *lMessage = new CommandMessage(lDataString.c_str(),
+												  lDataString.size(),
+												  reinterpret_cast<void *>(GetOwner()));
 	if (!lMessage)
 	{
 		perror("could not allocate CommandMessage in ServiceBulkOut");
 		exit(EXIT_FAILURE);
 	}
 
-	extern OsalThread *gScriptProcessorThread2;
-	SendMessage(gScriptProcessorThread2, lMessage);
+	SendMessage(gScriptProcessorThread, lMessage);
 }
 
 void UsbTmc::ServiceBulkIn(gadget_tmc_header *lHeader)
