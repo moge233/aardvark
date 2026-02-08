@@ -21,6 +21,7 @@ public:
 	~CommandInterface();
 	CommandMessage *ReceiveMessage(void);
 	int SendMessage(OsalThread *lDestination, CommandMessage *lMessage);
+	inline void *GetOwner(void) { return mOwner; }
 
 private:
 	void *mOwner;
