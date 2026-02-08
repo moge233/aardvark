@@ -21,7 +21,9 @@ static void *UsbTmcThreadFxn(void *lArg);
 OsalThread *gScriptProcessorThread;
 OsalThread *gUsbTmcThread;
 
+#ifdef DAEMONIZE
 static int InitDaemon(void);
+#endif
 static void CreateThreads(void);
 static void JoinThreads(void);
 static void DetachThreads(void);
@@ -29,7 +31,6 @@ static void DeleteThreads(void);
 static void SignalHandler(int lSignal);
 
 ScriptProcessor *gScriptProcessor;
-UsbTmc *gUsbTmc;
 #ifdef BUILD_WITH_DISPLAY
 AardvarkDisplay *gDisplay;
 #endif
@@ -69,11 +70,6 @@ int main(int argc, char *argv[])
 	if (gScriptProcessor)
 	{
 		delete gScriptProcessor;
-	}
-
-	if (gUsbTmc)
-	{
-		delete gUsbTmc;
 	}
 #endif // DAEMONIZE
 	return EXIT_SUCCESS;
@@ -192,29 +188,29 @@ static void *UsbTmcThreadFxn(void *lArg)
 	}
 
 	OsalThread *lThisThread = reinterpret_cast<OsalThread *>(lArg);
-	gUsbTmc = new UsbTmc(lThisThread);
-	if (!gUsbTmc)
+	UsbTmc *lUsbTmc = new UsbTmc(lThisThread);
+	if (!lUsbTmc)
 	{
 		exit(EXIT_FAILURE);
 	}
 	while(!gStop)
 	{
-		if(gUsbTmc->GetFileDescriptor())
+		if(lUsbTmc->GetFileDescriptor())
 		{
-			if (gUsbTmc->Poll())
+			if (lUsbTmc->Poll())
 			{
 				gadget_tmc_header lHeader;
-				if (gUsbTmc->GetHeader(&lHeader))
+				if (lUsbTmc->GetHeader(&lHeader))
 				{
 					switch (lHeader.MsgID)
 					{
 						case GADGET_TMC_DEV_DEP_MSG_OUT:
 						case GADGET_TMC_VENDOR_SPECIFIC_OUT:
-							gUsbTmc->ServiceBulkOut(&lHeader);
+							lUsbTmc->ServiceBulkOut(&lHeader);
 							break;
 						case GADGET_TMC_REQUEST_DEV_DEP_MSG_IN:
 						case GADGET_TMC_REQUEST_VENDOR_SPECIFIC_IN:
-							gUsbTmc->ServiceBulkIn(&lHeader);
+							lUsbTmc->ServiceBulkIn(&lHeader);
 							break;
 						case GADGET_TMC488_TRIGGER:
 							break;
@@ -223,6 +219,8 @@ static void *UsbTmcThreadFxn(void *lArg)
 			}
 		}
 	}
+
+	delete lUsbTmc;
 
 	return nullptr;
 }
