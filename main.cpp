@@ -223,8 +223,6 @@ static void *UsbTmcThreadFxn(void *lArg)
 		}
 	}
 
-	delete lUsbTmc;
-
 	return nullptr;
 }
 
