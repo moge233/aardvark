@@ -21,8 +21,8 @@ set(
 	platform/src/circularbuffer.cpp
 	platform/src/commandinterface.cpp
 	platform/src/commandmessage.cpp
+	platform/src/endpoint.cpp
 	platform/src/errors.cpp
-	platform/src/logicaldevice.cpp
 	platform/src/lua.cpp
 	platform/src/osalthread.cpp
 	platform/src/scriptprocessor.cpp
