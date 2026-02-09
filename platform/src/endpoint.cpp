@@ -31,13 +31,3 @@ int Endpoint::Send(Endpoint *lDestination, CommandMessage *lMessage)
     int lError = lDestination->Post();
     return lError;
 }
-
-CommandMessage *Endpoint::BuildMessage(string &lData)
-{
-    return BuildMessage(lData.c_str(), lData.length());
-}
-
-CommandMessage *Endpoint::BuildMessage(const char *lData, size_t lLength)
-{
-    return new CommandMessage(lData, lLength, reinterpret_cast<void *>(this));
-}

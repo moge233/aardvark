@@ -19,8 +19,8 @@ class Endpoint
         CommandMessage *Receive(void);
         int Send(Endpoint *lDestination, CommandMessage *lMessage);
 
-        CommandMessage *BuildMessage(string &lData);
-        CommandMessage *BuildMessage(const char *lData, size_t lLength);
+        inline CommandMessage *BuildMessage(string &lData) { return BuildMessage(lData.c_str(), lData.length()); }
+        inline CommandMessage *BuildMessage(const char *lData, size_t lLength) { return new CommandMessage(lData, lLength, reinterpret_cast<void *>(this)); }
         
         inline int Count(void) { int lVal{0}; sem_getvalue(&mSemaphore, &lVal); return lVal; }
     private:
