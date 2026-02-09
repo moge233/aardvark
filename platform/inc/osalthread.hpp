@@ -26,8 +26,6 @@ class OsalThread
         int Join(void **lThreadReturn);
         int Cancel(void);
         int Detach(void);
-        CommandMessage *Receive(void);
-        int Send(OsalThread *lDestination, CommandMessage *lMessage);
     private:
         uint32_t mPriority;
         size_t mStackSize;
@@ -35,12 +33,6 @@ class OsalThread
         void *mArg;
         pthread_t mThread;
         pthread_attr_t mAttributes;
-        sem_t mSemaphore;
-        CircularBuffer mInputQueue;
-        CircularBuffer mOutputQueue;
-
-        inline int Wait(void) { return sem_wait(&mSemaphore); }
-        inline int Post(void) { return sem_post(&mSemaphore); }
 };
 
 #endif // OSALTHREAD_HPP

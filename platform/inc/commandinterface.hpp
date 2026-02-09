@@ -12,21 +12,16 @@
 
 #include "commandmessage.hpp"
 #include "circulbarbuffer.hpp"
-#include "osalthread.hpp"
+#include "endpoint.hpp"
 
-class CommandInterface
+class CommandInterface : public Endpoint
 {
 public:
-	CommandInterface(void *lOwner, size_t lInputQueueCapacity, size_t lOutputQueueCapacity);
+	CommandInterface(size_t lQueueCapacity);
 	~CommandInterface();
-	CommandMessage *ReceiveMessage(void);
-	int SendMessage(OsalThread *lDestination, CommandMessage *lMessage);
-	inline void *GetOwner(void) { return mOwner; }
 
 private:
-	void *mOwner;
-	CircularBuffer mInputQueue;
-	CircularBuffer mOutputQueue;
+	CircularBuffer mQueue;
 };
 
 
