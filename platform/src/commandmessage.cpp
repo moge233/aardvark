@@ -14,9 +14,10 @@
 
 using namespace std;
 
-CommandMessage::CommandMessage(const char *lMessage, unsigned long lLength, void *lOrigin)
+CommandMessage::CommandMessage(const char *lMessage, unsigned long lLength, void *lOrigin, void *lDestination)
 : mLength{lLength}
 , mOrigin{lOrigin}
+, mDestination{lDestination}
 {
 	mMessage = new char [mLength + 1];
 	if (!mMessage)
@@ -37,11 +38,13 @@ CommandMessage::~CommandMessage(void)
 	}
 
 	mOrigin = static_cast<void *>(nullptr);
+	mDestination = static_cast<void *>(nullptr);
 }
 
 CommandMessage::CommandMessage(CommandMessage& lOther)
 : mLength{lOther.GetLength()}
 , mOrigin{lOther.GetOrigin()}
+, mDestination{lOther.GetDestination()}
 {
 	mMessage = new char [mLength + 1];
 	memcpy(mMessage, lOther.mMessage, mLength);
@@ -51,6 +54,9 @@ CommandMessage::CommandMessage(CommandMessage& lOther)
 CommandMessage& CommandMessage::operator=(CommandMessage& lOther)
 {
 	mLength = lOther.GetLength();
+	mOrigin = lOther.GetOrigin();
+	mDestination = lOther.GetDestination();
+	
 	mMessage = new char[mLength + 1];
 	if (!mMessage)
 	{
