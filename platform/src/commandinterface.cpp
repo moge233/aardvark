@@ -15,13 +15,3 @@ CommandInterface::CommandInterface(size_t lQueueCapacity)
 CommandInterface::~CommandInterface(void)
 {
 }
-
-CommandMessage *CommandInterface::ReceiveMessage(void)
-{
-    return Receive();
-}
-
-int CommandInterface::SendMessage(Endpoint *lDestination, CommandMessage *lMessage)
-{
-    return Send(lDestination, lMessage);
-}

@@ -19,8 +19,6 @@ class CommandInterface : public Endpoint
 public:
 	CommandInterface(size_t lQueueCapacity);
 	~CommandInterface();
-	CommandMessage *ReceiveMessage(void);
-	int SendMessage(Endpoint *lDestination, CommandMessage *lMessage);
 
 private:
 	CircularBuffer mQueue;
