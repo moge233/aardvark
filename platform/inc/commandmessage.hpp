@@ -13,15 +13,14 @@
 class CommandMessage
 {
 public:
-	CommandMessage(void);
 	CommandMessage(const char *lMessage, unsigned long lLength, void *lOrigin);
 	~CommandMessage();
 	CommandMessage(CommandMessage& lOther);
 	CommandMessage& operator=(CommandMessage& lOther);
 
-	inline const char *GetData(void) { return mMessage; };
-	inline unsigned long GetLength(void) { return mLength; };
-	inline void *GetOrigin(void) { return mOrigin; };
+	inline const char *GetData(void) const { return mMessage; };
+	inline unsigned long GetLength(void) const { return mLength; };
+	inline void *GetOrigin(void) const { return mOrigin; };
 private:
 	char *mMessage;
 	unsigned long mLength;
