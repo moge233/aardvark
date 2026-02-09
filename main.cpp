@@ -161,10 +161,10 @@ static void *ScriptProcessorThreadFxn(void *lArg)
 	
 			if (gScriptProcessor->GetCount() > 0)
 			{
-				Endpoint *lDestination = reinterpret_cast<Endpoint *>(lMessage->GetOrigin());
 				CommandMessage *lReplyMessage = gScriptProcessor->BuildMessage(gScriptProcessor->GetData(),
-																			   gScriptProcessor->GetCount());
-				gScriptProcessor->Send(lDestination, lReplyMessage);
+																			   gScriptProcessor->GetCount(),
+																			   reinterpret_cast<Endpoint *>(lMessage->GetOrigin()));
+				gScriptProcessor->Send(lReplyMessage);
 	
 				gScriptProcessor->ClearData();
 			}
@@ -200,8 +200,8 @@ static void *UsbTmcThreadFxn(void *lArg)
 						case GADGET_TMC_VENDOR_SPECIFIC_OUT:
 						{
 							string lData = lUsbTmc.ServiceBulkOut(&lHeader);
-							CommandMessage *lMessage = lUsbTmc.BuildMessage(lData);
-							lUsbTmc.Send(gScriptProcessor, lMessage);
+							CommandMessage *lDataMessage = lUsbTmc.BuildMessage(lData, gScriptProcessor);
+							lUsbTmc.Send(lDataMessage);
 							break;
 						}
 						case GADGET_TMC_REQUEST_DEV_DEP_MSG_IN:
