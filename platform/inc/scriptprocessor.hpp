@@ -10,6 +10,7 @@
 
 #include <pthread.h>
 
+#include "endpoint.hpp"
 #include "lua.hpp"
 
 constexpr unsigned int ASCII_DEFAULT_PRECISION = 6;
@@ -20,7 +21,7 @@ enum DebugFunctions {
 	FUNC_GET_SERIAL,
 };
 
-class ScriptProcessor : public Lua
+class ScriptProcessor : public Endpoint, public Lua
 {
 protected:
 	enum {

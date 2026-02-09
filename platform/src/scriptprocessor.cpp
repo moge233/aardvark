@@ -76,7 +76,8 @@ static void GetDeviceTable(Lua *lLua) {
 }
 
 ScriptProcessor::ScriptProcessor(void)
-: Lua()
+: Endpoint()
+, Lua()
 {
 	memset(&mOutputBuffer[0], 0, OUTPUT_BUFFER_SIZE);
 
