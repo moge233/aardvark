@@ -7,24 +7,21 @@
 
 #include "commandinterface.hpp"
 
-CommandInterface::CommandInterface(OsalThread *lOwner, size_t lInputQueueCapacity, size_t lOutputQueueCapacity)
-: mOwner{lOwner}
-, mInputQueue(lInputQueueCapacity)
-, mOutputQueue(lOutputQueueCapacity)
+CommandInterface::CommandInterface(size_t lQueueCapacity)
+: mQueue(lQueueCapacity)
 {
 }
 
 CommandInterface::~CommandInterface(void)
 {
-    mOwner = static_cast<OsalThread *>(nullptr);
 }
 
 CommandMessage *CommandInterface::ReceiveMessage(void)
 {
-    return mOwner->Receive();
+    return Receive();
 }
 
-int CommandInterface::SendMessage(OsalThread *lDestination, CommandMessage *lMessage)
+int CommandInterface::SendMessage(Endpoint *lDestination, CommandMessage *lMessage)
 {
-    return mOwner->Send(lDestination, lMessage);
+    return Send(lDestination, lMessage);
 }
