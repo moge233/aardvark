@@ -4,30 +4,35 @@
 #include "endpoint.hpp"
 
 Endpoint::Endpoint(void)
-: mInputQueue(64)
+: mMessageQueue(64)
 {
-    int lError = sem_init(&mSemaphore, 0, 0);
-    if (lError)
-    {
-        exit(EXIT_FAILURE);
-    }
+    pthread_mutex_init(&mLock, nullptr);
+    pthread_cond_init(&mCondition, nullptr);
 }
 
 Endpoint::~Endpoint()
 {
-    sem_destroy(&mSemaphore);
+    Post();
+    Unlock();
+    pthread_mutex_destroy(&mLock);
+    pthread_cond_destroy(&mCondition);
 }
 
 CommandMessage *Endpoint::Receive(void)
 {
+    Lock();
     Wait();
-    CommandMessage *lMessage = mInputQueue.Get();
+    CommandMessage *lMessage = mMessageQueue.Get();
+    Unlock();
     return lMessage;
 }
 
-int Endpoint::Send(Endpoint *lDestination, CommandMessage *lMessage)
+int Endpoint::Send(CommandMessage *lMessage)
 {
-    lDestination->mInputQueue.Put(lMessage);
-    int lError = lDestination->Post();
-    return lError;
+    Endpoint *lDestination = reinterpret_cast<Endpoint *>(lMessage->GetDestination());
+    lDestination->Lock();
+    lDestination->mMessageQueue.Put(lMessage);
+    lDestination->Post();
+    lDestination->Unlock();
+    return 0;
 }

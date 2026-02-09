@@ -2,6 +2,7 @@
 #ifndef ENDPOINT_HPP_
 #define ENDPOINT_HPP_
 
+#include <cassert>
 #include <string>
 
 #include <semaphore.h>
@@ -17,18 +18,22 @@ class Endpoint
         Endpoint(void);
         ~Endpoint();
         CommandMessage *Receive(void);
-        int Send(Endpoint *lDestination, CommandMessage *lMessage);
+        int Send(CommandMessage *lMessage);
 
-        inline CommandMessage *BuildMessage(string &lData) { return BuildMessage(lData.c_str(), lData.length()); }
-        inline CommandMessage *BuildMessage(const char *lData, size_t lLength) { return new CommandMessage(lData, lLength, reinterpret_cast<void *>(this)); }
-        
-        inline int Count(void) { int lVal{0}; sem_getvalue(&mSemaphore, &lVal); return lVal; }
+        inline CommandMessage *BuildMessage(string &lData, void *lDestination) { return BuildMessage(lData.c_str(), lData.length(), lDestination); }
+        inline CommandMessage *BuildMessage(const char *lData, size_t lLength, void *lDestination) { return new CommandMessage(lData, lLength, reinterpret_cast<void *>(this), lDestination); }
+
     private:
-        sem_t mSemaphore;
-        CircularBuffer mInputQueue;
+        pthread_mutex_t mLock;
+        pthread_cond_t mCondition;
+        CircularBuffer mMessageQueue;
 
-        inline int Wait(void) { return sem_wait(&mSemaphore); }
-        inline int Post(void) { return sem_post(&mSemaphore); }
+        inline int Lock(void) { return pthread_mutex_lock(&mLock); }
+        inline int Unlock(void) { return pthread_mutex_unlock(&mLock); }
+        inline int ConditionWait(void) { return pthread_cond_wait(&mCondition, &mLock); }
+        inline int ConditionSignal(void) { return pthread_cond_signal(&mCondition); }
+        inline int Wait(void) { int lError{0}; while(mMessageQueue.IsEmpty()) { lError = ConditionWait(); } return lError; }
+        inline int Post(void) { int lError = ConditionSignal(); return lError; }
 };
 
 #endif // ENDPOINT_HPP_
