@@ -5,34 +5,25 @@
  *      Author: matt
  */
 
-#include "scriptprocessor.hpp"
-#include "usbtmc.hpp"
-
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/poll.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
-
-#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#include <chrono>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <thread>
+#include <memory>
 #include <vector>
 
-extern OsalThread *gScriptProcessorThread;
+#include <fcntl.h>
+#include <poll.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+
+#include "usbtmc.hpp"
+#include "commandmessage.hpp"
 
 using namespace std;
 
-UsbTmc::UsbTmc(OsalThread *lOwner)
-: CommandInterface(lOwner, 50, 50)
+UsbTmc::UsbTmc(void)
+: CommandInterface(64)
 , mBulkXferIndex(0)
 , mHeader({0})
 {
@@ -64,34 +55,7 @@ UsbTmc::~UsbTmc(void)
 	close(mFileDescriptor);
 }
 
-void UsbTmc::Main(void)
-{
-	if(mFileDescriptor)
-	{
-		if (Poll())
-		{
-			gadget_tmc_header lHeader;
-			if (GetHeader(&lHeader))
-			{
-				switch (lHeader.MsgID)
-				{
-					case GADGET_TMC_DEV_DEP_MSG_OUT:
-					case GADGET_TMC_VENDOR_SPECIFIC_OUT:
-						ServiceBulkOut(&lHeader);
-						break;
-					case GADGET_TMC_REQUEST_DEV_DEP_MSG_IN:
-					case GADGET_TMC_REQUEST_VENDOR_SPECIFIC_IN:
-						ServiceBulkIn(&lHeader);
-						break;
-					case GADGET_TMC488_TRIGGER:
-						break;
-				}
-			}
-		}
-	}
-}
-
-void UsbTmc::ServiceBulkOut(gadget_tmc_header *lHeader)
+string UsbTmc::ServiceBulkOut(gadget_tmc_header *lHeader)
 {
 	string lDataString;
 	uint32_t lBytesRemaining = lHeader->TransferSize;
@@ -126,30 +90,12 @@ void UsbTmc::ServiceBulkOut(gadget_tmc_header *lHeader)
 		mBulkXferIndex = (++mBulkXferIndex == 16) ? 0 : mBulkXferIndex;
 	} while(lBytesRemaining);
 
-	CommandMessage *lMessage = new CommandMessage(lDataString.c_str(),
-												  lDataString.size(),
-												  reinterpret_cast<void *>(GetOwner()));
-	if (!lMessage)
-	{
-		perror("could not allocate CommandMessage in ServiceBulkOut");
-		exit(EXIT_FAILURE);
-	}
-
-	SendMessage(gScriptProcessorThread, lMessage);
+	return lDataString;
 }
 
-void UsbTmc::ServiceBulkIn(gadget_tmc_header *lHeader)
+void UsbTmc::ServiceBulkIn(gadget_tmc_header *lHeader, string lData)
 {
-	CommandMessage *lMessage = ReceiveMessage();
-	if (lMessage)
-	{
-		if (lMessage->GetLength() > 0)
-		{
-			Output(lHeader, lMessage->GetData(), lMessage->GetLength());
-		}
-
-		delete lMessage;
-	}
+	Output(lHeader, lData.c_str(), lData.length());
 }
 
 void UsbTmc::Output(gadget_tmc_header *lHeader, const char *lBuffer, size_t lLength)
