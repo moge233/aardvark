@@ -19,7 +19,8 @@ enum LedFunctions {
 	FUNC_SET
 };
 
-class Led {
+class Led
+{
 public:
 
 	typedef enum {

@@ -8,8 +8,6 @@ OsalThread::OsalThread(uint32_t lPriority, size_t lStackSize, OsalThreadFxn lFxn
 , mStackSize{lStackSize}
 , mFxn{lFxn}
 , mArg{lArg}
-, mInputQueue(64)
-, mOutputQueue(64)
 {
     if (mStackSize < PTHREAD_STACK_MIN)
     {
@@ -66,13 +64,6 @@ OsalThread::OsalThread(uint32_t lPriority, size_t lStackSize, OsalThreadFxn lFxn
         std::cerr << "could not set create thread" << std::endl;
         exit(EXIT_FAILURE);
     }
-
-    lError = sem_init(&mSemaphore, 0, 0);
-    if (lError)
-    {
-        std::cerr << "could not initialize semaphore" << std::endl;
-        exit(EXIT_FAILURE);
-    }
 }
 
 OsalThread::~OsalThread()
@@ -93,18 +84,4 @@ int OsalThread::Cancel(void)
 int OsalThread::Detach(void)
 {
     return pthread_detach(mThread);
-}
-
-CommandMessage *OsalThread::Receive(void)
-{
-    Wait();
-    CommandMessage *lMessage = mInputQueue.Get();
-    return lMessage;
-}
-
-int OsalThread::Send(OsalThread *lDestination, CommandMessage *lMessage)
-{
-    lDestination->mInputQueue.Put(lMessage);
-    int lError = lDestination->Post();
-    return lError;
 }

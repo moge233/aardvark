@@ -10,21 +10,18 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <fstream>
 #include <string>
-
-#include <poll.h>
 
 #include <linux/usb/g_tmc.h>
 
 #include "commandinterface.hpp"
-#include "osalthread.hpp"
-
 
 constexpr char TMC_DEVICE_PATH[] = "/dev/tmc";
 constexpr char TMC_REN_PATH[] = "/sys/kernel/config/usb_gadget/g1/functions/tmc.g1/REN";
 
 constexpr size_t TMC_BULK_ENDPOINT_LENGTH = 512;
+
+using namespace std;
 
 struct UsbTmcXferBuffer {
 	int32_t mLength;
@@ -43,16 +40,15 @@ private:
 	gadget_tmc_header mHeader;
 
 public:
-	UsbTmc(OsalThread *lOwner);
+	UsbTmc(void);
 	~UsbTmc();
 	UsbTmc(UsbTmc &) = delete;
 	UsbTmc &operator=(UsbTmc &) = delete;
-	void Main(void);
 
-	inline const int &GetFileDescriptor() { return mFileDescriptor; }
+	inline const int &GetFileDescriptor() const { return mFileDescriptor; }
 
-	void ServiceBulkOut(gadget_tmc_header *lHeader);
-	void ServiceBulkIn(gadget_tmc_header *lHeader);
+	string ServiceBulkOut(gadget_tmc_header *lHeader);
+	void ServiceBulkIn(gadget_tmc_header *lHeader, string lData);
 	void Output(gadget_tmc_header *lHeader, const char *lBuffer, size_t lLength);
 	bool GetHeader(gadget_tmc_header *lHeader);
 	bool Poll(void);

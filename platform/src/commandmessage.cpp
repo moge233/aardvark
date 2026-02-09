@@ -5,87 +5,66 @@
  *      Author: matt
  */
 
-
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <memory>
 #include <utility>
 
 #include "commandmessage.hpp"
 
-CommandMessage::CommandMessage(void)
-{
-	CommandMessage(static_cast<char *>(nullptr), 0, static_cast<void *>(nullptr));
-}
+using namespace std;
 
-CommandMessage::CommandMessage(const char *lMessage, unsigned long lLength, void *lOrigin)
+CommandMessage::CommandMessage(const char *lMessage, unsigned long lLength, void *lOrigin, void *lDestination)
 : mLength{lLength}
 , mOrigin{lOrigin}
+, mDestination{lDestination}
 {
-	if (mLength)
+	mMessage = new char [mLength + 1];
+	if (!mMessage)
 	{
-		mMessage = new char [mLength + 1];
-		if (!mMessage)
-		{
-			exit(EXIT_FAILURE);
-		}
+		exit(EXIT_FAILURE);
+	}
 
-		std::memmove(reinterpret_cast<void *>(const_cast<char *>(mMessage)), lMessage, mLength);
-		mMessage[mLength] = '\0';
-	}
-	else
-	{
-		mMessage = static_cast<char *>(nullptr);
-	}
+	memcpy(reinterpret_cast<void *>(const_cast<char *>(mMessage)), lMessage, mLength);
+	mMessage[mLength] = '\0';
 }
 
 CommandMessage::~CommandMessage(void)
 {
+	mLength = 0;
 	if (mMessage)
 	{
 		delete [] mMessage;
 	}
 
 	mOrigin = static_cast<void *>(nullptr);
+	mDestination = static_cast<void *>(nullptr);
 }
 
 CommandMessage::CommandMessage(CommandMessage& lOther)
 : mLength{lOther.GetLength()}
 , mOrigin{lOther.GetOrigin()}
+, mDestination{lOther.GetDestination()}
 {
 	mMessage = new char [mLength + 1];
-	std::memmove(lOther.mMessage, mMessage, lOther.GetLength());
-	mMessage[mLength + 1] = '\0';
+	memcpy(mMessage, lOther.mMessage, mLength);
+	mMessage[mLength] = '\0';
 }
 
 CommandMessage& CommandMessage::operator=(CommandMessage& lOther)
 {
-	if (this != &lOther)
+	mLength = lOther.GetLength();
+	mOrigin = lOther.GetOrigin();
+	mDestination = lOther.GetDestination();
+	
+	mMessage = new char[mLength + 1];
+	if (!mMessage)
 	{
-		if (this->mMessage)
-		{
-			delete [] mMessage;
-		}
-
-		if (lOther.GetData() && lOther.GetLength() > 0)
-		{
-			mLength = lOther.GetLength();
-			mMessage = new char[mLength];
-			if (!mMessage)
-			{
-				exit(EXIT_FAILURE);
-			}
-
-			memcpy(reinterpret_cast<void *>(const_cast<char *>(mMessage)), lOther.GetData(), mLength);
-			mMessage[mLength] = '\0';
-		}
-		else
-		{
-			mMessage = nullptr;
-			mLength = 0;
-		}
+		exit(EXIT_FAILURE);
 	}
+
+	memcpy(const_cast<char *>(mMessage), lOther.GetData(), mLength);
+	mMessage[mLength] = '\0';
 
 	return *this;
 }

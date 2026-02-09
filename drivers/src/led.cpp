@@ -6,6 +6,7 @@
  */
 
 
+#include "lua.hpp"
 #include "led.hpp"
 
 #include <csignal>
@@ -16,9 +17,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-
 Led gLed;
-
 
 void LedInstall(lua_State *lState) {
 	Lua lLua(lState);

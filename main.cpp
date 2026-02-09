@@ -6,19 +6,24 @@
  */
 
 #include <atomic>
+#include <chrono>
+#include <csignal>
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
 #include <ctime>
 
+#include "endpoint.hpp"
 #include "osalthread.hpp"
 #include "scriptprocessor.hpp"
 #include "usbtmc.hpp"
 
+#ifdef BUILD_WITH_DISPLAY
 #include "display.hpp"
+#endif
 
 OsalThread *gScriptProcessorThread;
 OsalThread *gUsbTmcThread;
-ScriptProcessor *gScriptProcessor;
 #ifdef BUILD_WITH_DISPLAY
 AardvarkDisplay *gDisplay;
 #endif
@@ -34,6 +39,8 @@ static void DeleteThreads(void);
 static void SignalHandler(int lSignal);
 static void *ScriptProcessorThreadFxn(void *lArg);
 static void *UsbTmcThreadFxn(void *lArg);
+
+using namespace std;
 
 int main(int argc, char *argv[])
 {
@@ -55,8 +62,6 @@ int main(int argc, char *argv[])
 	{
 		return EXIT_FAILURE;
 	}
-
-	gScriptProcessor->StartLua();
 
 	CreateThreads();
 
@@ -149,24 +154,21 @@ static void *ScriptProcessorThreadFxn(void *lArg)
 	OsalThread *lThisThread = reinterpret_cast<OsalThread *>(lArg);
 	while (!gStop)
 	{
-		// Receive message in queue; block if not available;
-		CommandMessage *lMessage = lThisThread->Receive();
+		CommandMessage *lMessage = gScriptProcessor->Receive();
 		if (lMessage)
 		{
 			gScriptProcessor->HandleCommand(lMessage->GetData(), lMessage->GetLength());
-
+	
 			if (gScriptProcessor->GetCount() > 0)
 			{
-				CommandMessage *lReplyMessage = new CommandMessage(gScriptProcessor->GetData(),
-																   gScriptProcessor->GetCount(),
-																   reinterpret_cast<void *>(lThisThread));
-				OsalThread *lDestination = reinterpret_cast<OsalThread *>(lMessage->GetOrigin());
-				lThisThread->Send(lDestination, lReplyMessage);
-
+				CommandMessage *lReplyMessage = gScriptProcessor->BuildMessage(gScriptProcessor->GetData(),
+																			   gScriptProcessor->GetCount(),
+																			   reinterpret_cast<Endpoint *>(lMessage->GetOrigin()));
+				gScriptProcessor->Send(lReplyMessage);
+	
 				gScriptProcessor->ClearData();
-				gScriptProcessor->ClearCount();
 			}
-
+	
 			delete lMessage;
 		}
 	}
@@ -182,30 +184,37 @@ static void *UsbTmcThreadFxn(void *lArg)
 	}
 
 	OsalThread *lThisThread = reinterpret_cast<OsalThread *>(lArg);
-	UsbTmc *lUsbTmc = new UsbTmc(lThisThread);
-	if (!lUsbTmc)
-	{
-		exit(EXIT_FAILURE);
-	}
+	UsbTmc lUsbTmc;
 	while(!gStop)
 	{
-		if(lUsbTmc->GetFileDescriptor())
+		if(lUsbTmc.GetFileDescriptor())
 		{
-			if (lUsbTmc->Poll())
+			if (lUsbTmc.Poll())
 			{
 				gadget_tmc_header lHeader;
-				if (lUsbTmc->GetHeader(&lHeader))
+				if (lUsbTmc.GetHeader(&lHeader))
 				{
 					switch (lHeader.MsgID)
 					{
 						case GADGET_TMC_DEV_DEP_MSG_OUT:
 						case GADGET_TMC_VENDOR_SPECIFIC_OUT:
-							lUsbTmc->ServiceBulkOut(&lHeader);
+						{
+							string lData = lUsbTmc.ServiceBulkOut(&lHeader);
+							CommandMessage *lDataMessage = lUsbTmc.BuildMessage(lData, gScriptProcessor);
+							lUsbTmc.Send(lDataMessage);
 							break;
+						}
 						case GADGET_TMC_REQUEST_DEV_DEP_MSG_IN:
 						case GADGET_TMC_REQUEST_VENDOR_SPECIFIC_IN:
-							lUsbTmc->ServiceBulkIn(&lHeader);
+						{
+							CommandMessage *lMessage = lUsbTmc.Receive();
+							if (lMessage)
+							{
+								lUsbTmc.ServiceBulkIn(&lHeader, lMessage->GetData());
+								delete lMessage;
+							}
 							break;
+						}
 						case GADGET_TMC488_TRIGGER:
 							break;
 					}
