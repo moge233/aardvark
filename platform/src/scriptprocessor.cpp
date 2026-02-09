@@ -14,14 +14,11 @@
 
 #include "errors.hpp"
 #include "led.hpp"
-#include "logicaldevice.hpp"
 #include "model.hpp"
 #include "scriptprocessor.hpp"
 #include "status.hpp"
 
-
 static constexpr unsigned long OUTPUT_BUFFER_SIZE = 10000;
-
 
 pthread_mutex_t ScriptProcessor::mLock = PTHREAD_MUTEX_INITIALIZER;
 char ScriptProcessor::mOutputBuffer[OUTPUT_BUFFER_SIZE] = { 0 };
@@ -48,6 +45,35 @@ constexpr char IDN_Q_CMD[] = "print(information.manufacturer..\",\"..information
 constexpr char ESE_Q_CMD[] = "print(status.eventenable)\0";
 constexpr char ESR_Q_CMD[] = "print(status.event)\0";
 
+static const char sDeviceTableIndex[] = "DeviceTableIndex";
+
+static void InitDeviceTable(lua_State *lState)
+{
+	Lua lLua(lState);
+
+	// Create the device table as a read-only table
+	lLua.PushLightUserData(const_cast<char *>(sDeviceTableIndex));
+	lLua.NewTable();
+	lLua.MakeTableReadOnly();
+
+	/*
+	 * Stack: (top down)
+	 * 		: {} "DeviceTableIndex"
+	 */
+
+	// Put the device table into the registry for safekeeping.
+	lLua.SetTable(LUA_REGISTRYINDEX);			// registry["DeviceTableIndex"] = {}
+
+	// Put the device table into localnode.
+	lLua.PushLightUserData(const_cast<char *>(sDeviceTableIndex));
+	lLua.GetTable(LUA_REGISTRYINDEX);
+	lLua.SetGlobal("localnode");
+}
+
+static void GetDeviceTable(Lua *lLua) {
+	lLua->PushLightUserData(const_cast<char *>(sDeviceTableIndex));
+	lLua->GetTable(LUA_REGISTRYINDEX);
+}
 
 ScriptProcessor::ScriptProcessor(void)
 : Lua()
@@ -128,9 +154,9 @@ void ScriptProcessor::StartLua(void)
 	PushStatelessGlobalClosure("print", StatelessScriptProcessor::Print);	// *
 	PushStatelessGlobalClosure("stb", StatelessScriptProcessor::ReadStb);	// *
 
-	LocalLogicalDevice::DeviceTableInit(mState);
+	InitDeviceTable(mState);
 
-	LocalLogicalDevice::DeviceTableGet(this);
+	GetDeviceTable(this);
 
 	/*
 	 * Stack: (top down)
