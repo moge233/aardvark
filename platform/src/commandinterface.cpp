@@ -7,7 +7,7 @@
 
 #include "commandinterface.hpp"
 
-CommandInterface::CommandInterface(void *lOwner, size_t lInputQueueCapacity, size_t lOutputQueueCapacity)
+CommandInterface::CommandInterface(OsalThread *lOwner, size_t lInputQueueCapacity, size_t lOutputQueueCapacity)
 : mOwner{lOwner}
 , mInputQueue(lInputQueueCapacity)
 , mOutputQueue(lOutputQueueCapacity)
@@ -16,17 +16,15 @@ CommandInterface::CommandInterface(void *lOwner, size_t lInputQueueCapacity, siz
 
 CommandInterface::~CommandInterface(void)
 {
-    mOwner = static_cast<void *>(nullptr);
+    mOwner = static_cast<OsalThread *>(nullptr);
 }
 
 CommandMessage *CommandInterface::ReceiveMessage(void)
 {
-    OsalThread *lOwnerThread = reinterpret_cast<OsalThread *>(mOwner);
-    return lOwnerThread->Receive();
+    return mOwner->Receive();
 }
 
 int CommandInterface::SendMessage(OsalThread *lDestination, CommandMessage *lMessage)
 {
-    OsalThread *lOwnerThread = reinterpret_cast<OsalThread *>(mOwner);
-    return lOwnerThread->Send(lDestination, lMessage);
+    return mOwner->Send(lDestination, lMessage);
 }

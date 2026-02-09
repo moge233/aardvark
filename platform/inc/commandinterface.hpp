@@ -17,14 +17,14 @@
 class CommandInterface
 {
 public:
-	CommandInterface(void *lOwner, size_t lInputQueueCapacity, size_t lOutputQueueCapacity);
+	CommandInterface(OsalThread *lOwner, size_t lInputQueueCapacity, size_t lOutputQueueCapacity);
 	~CommandInterface();
 	CommandMessage *ReceiveMessage(void);
 	int SendMessage(OsalThread *lDestination, CommandMessage *lMessage);
-	inline void *GetOwner(void) { return mOwner; }
+	inline OsalThread *GetOwner(void) { return mOwner; }
 
 private:
-	void *mOwner;
+	OsalThread *mOwner;
 	CircularBuffer mInputQueue;
 	CircularBuffer mOutputQueue;
 };
