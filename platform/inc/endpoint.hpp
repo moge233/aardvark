@@ -7,7 +7,7 @@
 
 #include <semaphore.h>
 
-#include "circulbarbuffer.hpp"
+#include "circularbuffer.hpp"
 #include "commandmessage.hpp"
 
 using namespace std;

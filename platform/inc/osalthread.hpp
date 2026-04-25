@@ -8,7 +8,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#include "circulbarbuffer.hpp"
+#include "circularbuffer.hpp"
 #include "commandmessage.hpp"
 
 class OsalThread

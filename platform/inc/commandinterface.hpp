@@ -11,14 +11,14 @@
 #include <cstdint>
 
 #include "commandmessage.hpp"
-#include "circulbarbuffer.hpp"
+#include "circularbuffer.hpp"
 #include "endpoint.hpp"
 
 class CommandInterface : public Endpoint
 {
 public:
 	CommandInterface(void);
-	~CommandInterface();
+		~CommandInterface();
 };
 
 

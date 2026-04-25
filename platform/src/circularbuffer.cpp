@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <iostream>
 
-#include "circulbarbuffer.hpp"
+#include "circularbuffer.hpp"
 
 CircularBuffer::CircularBuffer(size_t lCapacity)
 : mCapacity{lCapacity}
