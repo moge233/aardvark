@@ -8,23 +8,23 @@
 #ifndef LAN_VXI11_HPP_
 #define LAN_VXI11_HPP_
 
-#include "clientinterface.hpp"
-#include "serversocket.hpp"
-
 #include <mutex>
 #include <string>
+
+#include "commandinterface.hpp"
+#include "serversocket.hpp"
 
 extern "C"
 {
 #include "vxi11.h"
 }
 
+constexpr char SERVER_NAME[]{"VXI11.server"};
+
 using namespace std;
 
 namespace VXI11
 {
-	string SERVER_NAME("VXI11.server");
-
 	constexpr ssize_t MAX_BUFFER_SIZE = 2048;
 
 	constexpr Device_Flags WAITLOCK_BIT = (1 << 0);
@@ -53,7 +53,7 @@ namespace VXI11
 	Device_Error *DestroyInterruptChannelWrapper(void *lArgp, struct svc_req *lRqstp);
 	void *InterruptSRQWrapper(Device_SrqParms *lArgp, struct svc_req *lRqstp);
 
-	class Device : public ClientInterface
+	class Device : public CommandInterface
 	{
 		public:
 			Device(void);
@@ -82,14 +82,14 @@ namespace VXI11
 			Device_ReadStbResp mReadStbResponse;
 			Device_DocmdResp mDoCmdResponse;
 
-			char mReadBuffer[MAX_BUFFER_SIZE];
-			char mWriteBuffer[MAX_BUFFER_SIZE];
+			string mInputData;
+			string mOutputData;
 	};
 
-	class Server : public ServerSocket
+	class InstrumentServer : public ServerSocket
 	{
 		public:
-			explicit Server(const char *lServerName);
+			explicit InstrumentServer(const char *lServerName);
 			void Main();
 
 	int GetClientSocket() const {
@@ -110,15 +110,15 @@ namespace VXI11
 			int mClientSocket;
 	};
 
-	class InstrumentServer : public Server
+	class VXI11Server : public InstrumentServer
 	{
 		public:
 			static constexpr Device_Link cLinkId = 64;
 			static constexpr long cMaxReceiveSize = MAX_BUFFER_SIZE;
 			static constexpr long cAbortPort = 25;
 
-			InstrumentServer(const char *lServerName);
-			~InstrumentServer(void);
+			VXI11Server(const char *lServerName);
+			~VXI11Server(void);
 
 			Device *GetDevice() { return mDevice; }
 
@@ -146,9 +146,6 @@ namespace VXI11
 			Device_Error mError;
 	};
 }
-
-
-extern VXI11::InstrumentServer *gVxi11Instrument0;
 
 
 #endif /* LAN_VXI11_HPP_ */

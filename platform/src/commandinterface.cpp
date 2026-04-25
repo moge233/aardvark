@@ -7,8 +7,7 @@
 
 #include "commandinterface.hpp"
 
-CommandInterface::CommandInterface(size_t lQueueCapacity)
-: mQueue(lQueueCapacity)
+CommandInterface::CommandInterface(void)
 {
 }
 

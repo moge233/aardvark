@@ -5,8 +5,8 @@
  *      Author: matt
  */
 
-#ifndef USB_USBTMC_HPP_
-#define USB_USBTMC_HPP_
+#ifndef DRIVERS_USBTMC_HPP_
+#define DRIVERS_USBTMC_HPP_
 
 #include <cstddef>
 #include <cstdint>
@@ -15,11 +15,13 @@
 #include <linux/usb/g_tmc.h>
 
 #include "commandinterface.hpp"
+#include "monitor.hpp"
 
 constexpr char TMC_DEVICE_PATH[] = "/dev/tmc";
-constexpr char TMC_REN_PATH[] = "/sys/kernel/config/usb_gadget/g1/functions/tmc.g1/REN";
 
 constexpr size_t TMC_BULK_ENDPOINT_LENGTH = 512;
+
+void UsbTmcMonitorCallback(void *lArg);
 
 using namespace std;
 
@@ -28,13 +30,13 @@ struct UsbTmcXferBuffer {
 	char mData[TMC_BULK_ENDPOINT_LENGTH + 1];
 };
 
-class UsbTmc : public CommandInterface
+class UsbTmc : public CommandInterface, public Monitor
 {
 private:
 	int mFileDescriptor;
-	int mREN;				// REN file descriptor
-	int mStatusByte;		// StatusByte file descriptor
-	int mRemoteLocalState;	// RemoteLocalState file descriptor
+	uint32_t mREN;				// REN file descriptor
+	uint32_t mStatusByte;		// StatusByte file descriptor
+	uint32_t mRemoteLocalState;	// RemoteLocalState file descriptor
 	struct UsbTmcXferBuffer mXferBuffers[16];
 	size_t mBulkXferIndex;
 	gadget_tmc_header mHeader;
@@ -48,8 +50,8 @@ public:
 	inline const int &GetFileDescriptor() const { return mFileDescriptor; }
 
 	string ServiceBulkOut(gadget_tmc_header *lHeader);
-	void ServiceBulkIn(gadget_tmc_header *lHeader, string lData);
-	void Output(gadget_tmc_header *lHeader, const char *lBuffer, size_t lLength);
+	void ServiceBulkIn(string lData);
+	void Output(const char *lBuffer, size_t lLength);
 	bool GetHeader(gadget_tmc_header *lHeader);
 	bool Poll(void);
 	void AbortBulkOut(void);
@@ -63,4 +65,4 @@ public:
 	uint32_t GetStatusByte(void);
 };
 
-#endif /* USB_USBTMC_HPP_ */
+#endif /* DRIVERS_USBTMC_HPP_ */

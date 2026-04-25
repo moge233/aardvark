@@ -2,18 +2,18 @@
 #ifndef DISPLAY_HPP_
 #define DISPLAY_HPP_
 
-#include <QApplication>
-#include <QLabel>
+#include <iostream>
+
+#include <QtCore/QCoreApplication>
 
 class AardvarkDisplay
 {
     public:
     AardvarkDisplay(int &lArgc, char *lArgv[]);
     ~AardvarkDisplay();
-    inline void Run(void) { if (mApp) mApp->exec(); };
+    inline void Run(void) { std::cout << "Hello!!" << std::endl; mApp.exec(); }
     private:
-    QApplication *mApp;
-    QLabel *mLabel;
+    QCoreApplication mApp;
 };
 
 #endif // DISPLAY_HPP_

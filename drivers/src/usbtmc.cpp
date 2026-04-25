@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -23,9 +24,10 @@
 using namespace std;
 
 UsbTmc::UsbTmc(void)
-: CommandInterface(64)
+: CommandInterface()
+, Monitor("tmc")
 , mBulkXferIndex(0)
-, mHeader({0})
+, mHeader({0, 0, 0, 0, 0, 0, 0})
 {
 	for(size_t i=0; i<16; i++)
 	{
@@ -39,14 +41,8 @@ UsbTmc::UsbTmc(void)
 		exit(EXIT_FAILURE);
 	}
 
-	mREN = open(TMC_REN_PATH, O_RDWR);
-	if(mREN < 0)
-	{
-		perror("could not open TMC_REN_PATH");
-		mREN = 0;
-	}
-
 	mStatusByte = GetStatusByte();
+	mREN = GetREN();
 	mRemoteLocalState = GetRemoteLocalState();
 }
 
@@ -93,12 +89,12 @@ string UsbTmc::ServiceBulkOut(gadget_tmc_header *lHeader)
 	return lDataString;
 }
 
-void UsbTmc::ServiceBulkIn(gadget_tmc_header *lHeader, string lData)
+void UsbTmc::ServiceBulkIn(string lData)
 {
-	Output(lHeader, lData.c_str(), lData.length());
+	Output(lData.c_str(), lData.length());
 }
 
-void UsbTmc::Output(gadget_tmc_header *lHeader, const char *lBuffer, size_t lLength)
+void UsbTmc::Output(const char *lBuffer, size_t lLength)
 {
 	int lBytesSent = write(mFileDescriptor, lBuffer, lLength);
 	if (lBytesSent < 0)
@@ -126,15 +122,19 @@ bool UsbTmc::Poll(void)
 	lPollFds[0].revents = 0;
 
 	int lError = poll(lPollFds.data(), lPollFds.size(), lTimeout);
-	if (lError < 0)
+	if (lError == -1)
 	{
-		perror("Poll");
+		perror("USB TMC could not poll file descriptor");
 		return false;
 	}
 
 	if (lPollFds[0].revents & POLLIN)
 	{
 		return true;
+	}
+	else if (lPollFds[0].revents & POLLERR)
+	{
+		return false;
 	}
 
 	return false;
@@ -160,34 +160,22 @@ void UsbTmc::AbortBulkIn(void)
 
 void UsbTmc::SetREN(uint8_t lNewREN)
 {
-	if (!mREN)
+	mREN = lNewREN;
+	int lError = ioctl(mFileDescriptor, GADGET_TMC488_IOCTL_SET_REN, &mREN);
+	if (lError)
 	{
-		return;
+		perror("could not set REN");
 	}
 }
 
 uint8_t UsbTmc::GetREN(void)
 {
-	uint8_t lNewREN = 0;
-
-	if (!mREN)
+	int lError = ioctl(mFileDescriptor, GADGET_TMC488_IOCTL_GET_REN, &mREN);
+	if (lError)
 	{
-		return 0;
+		perror("could not get REN");
 	}
-
-	constexpr char lCommand[] = "cat /sys/kernel/config/usb_gadget/g1/functions/tmc.g1/REN";
-	FILE *lPipe = popen(lCommand, "r");
-	if (lPipe != nullptr)
-	{
-		char lBuffer[10];
-		if (fgets(lBuffer, 10, lPipe))
-		{
-			char *lEnd{};
-			lNewREN = std::strtol(lBuffer, &lEnd, 10); // @suppress("Function cannot be resolved")
-		}
-		pclose(lPipe);
-	}
-	return lNewREN;
+	return mREN;
 }
 
 void UsbTmc::SetRemoteLocalState(gadget_tmc488_localremote_state lNewState)

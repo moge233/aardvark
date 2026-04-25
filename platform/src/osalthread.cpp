@@ -9,9 +9,9 @@ OsalThread::OsalThread(uint32_t lPriority, size_t lStackSize, OsalThreadFxn lFxn
 , mFxn{lFxn}
 , mArg{lArg}
 {
-    if (mStackSize < PTHREAD_STACK_MIN)
+    if (mStackSize < static_cast<size_t>(PTHREAD_STACK_MIN))
     {
-        mStackSize = PTHREAD_STACK_MIN;
+        mStackSize = static_cast<size_t>(PTHREAD_STACK_MIN);
     }
 
     if (!mArg)
@@ -68,7 +68,8 @@ OsalThread::OsalThread(uint32_t lPriority, size_t lStackSize, OsalThreadFxn lFxn
 
 OsalThread::~OsalThread()
 {
-    ;
+    Cancel();
+    Detach();
 }
 
 int OsalThread::Join(void **lThreadReturn)

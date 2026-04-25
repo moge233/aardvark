@@ -225,7 +225,7 @@ public:
 
 	// Aux. Library
 	inline void AddChar(luaL_Buffer *lBuffer, char c) { luaL_addchar(lBuffer, c); }
-	inline const void AddGSub(luaL_Buffer *lBuffer, const char *lStr, const char *lPtr, const char *r) { return luaL_addgsub(lBuffer, lStr, lPtr, r); }
+	inline void AddGSub(luaL_Buffer *lBuffer, const char *lStr, const char *lPtr, const char *r) const { return luaL_addgsub(lBuffer, lStr, lPtr, r); }
 	inline void AddLString(luaL_Buffer *lBuffer, const char *lStr, size_t lLen) { luaL_addlstring(lBuffer, lStr, lLen); }
 	inline void AddSize(luaL_Buffer *lBuffer, size_t n) { luaL_addsize(lBuffer, n); }
 	inline void AddString(luaL_Buffer *lBuffer, const char *lStr) { luaL_addstring(lBuffer, lStr); }

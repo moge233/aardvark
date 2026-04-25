@@ -17,11 +17,8 @@
 class CommandInterface : public Endpoint
 {
 public:
-	CommandInterface(size_t lQueueCapacity);
+	CommandInterface(void);
 	~CommandInterface();
-
-private:
-	CircularBuffer mQueue;
 };
 
 

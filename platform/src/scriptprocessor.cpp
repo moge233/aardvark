@@ -75,13 +75,17 @@ static void GetDeviceTable(Lua *lLua) {
 	lLua->GetTable(LUA_REGISTRYINDEX);
 }
 
-ssize_t IDNQHandler(const char *lBuffer, size_t lLength)
+static ssize_t IDNQHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 	return gScriptProcessor->HandleCommand(IDN_Q_CMD, strlen(IDN_Q_CMD), false);
 }
 
-ssize_t CLSHandler(const char *lBuffer, size_t lLength)
+static ssize_t CLSHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 #if 0
 	Lock();
 	// TODO: gPlatformStatus.ClearEventRegister();
@@ -91,8 +95,10 @@ ssize_t CLSHandler(const char *lBuffer, size_t lLength)
 	return 0;
 }
 
-ssize_t RSTHandler(const char *lBuffer, size_t lLength)
+static ssize_t RSTHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 #if 0
 	Lock();
 	Unlock();
@@ -101,13 +107,17 @@ ssize_t RSTHandler(const char *lBuffer, size_t lLength)
 	return 0;
 }
 
-ssize_t TSTQHandler(const char *lBuffer, size_t lLength)
+static ssize_t TSTQHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 	return gScriptProcessor->HandleCommand(TST_Q_CMD, strlen(TST_Q_CMD), false);
 }
 
-ssize_t OPCHandler(const char *lBuffer, size_t lLength)
+static ssize_t OPCHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 #if 0
 	Lock();
 	Unlock();
@@ -116,13 +126,17 @@ ssize_t OPCHandler(const char *lBuffer, size_t lLength)
 	return 0;
 }
 
-ssize_t OPCQHandler(const char *lBuffer, size_t lLength)
+static ssize_t OPCQHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 	return gScriptProcessor->HandleCommand(OPC_Q_CMD, strlen(OPC_Q_CMD), false);
 }
 
-ssize_t WAIHandler(const char *lBuffer, size_t lLength)
+static ssize_t WAIHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 #if 0
 	Lock();
 	Unlock();
@@ -131,8 +145,10 @@ ssize_t WAIHandler(const char *lBuffer, size_t lLength)
 	return 0;
 }
 
-ssize_t ESEHandler(const char *lBuffer, size_t lLength)
+static ssize_t ESEHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 #if 0
 	Lock();
 	uint16_t lValue = 0;
@@ -149,28 +165,38 @@ ssize_t ESEHandler(const char *lBuffer, size_t lLength)
 	return 0;
 }
 
-ssize_t ESEQHandler(const char *lBuffer, size_t lLength)
+static ssize_t ESEQHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 	return gScriptProcessor->HandleCommand(ESE_Q_CMD, strlen(ESE_Q_CMD), false);
 }
 
-ssize_t ESRQHandler(const char *lBuffer, size_t lLength)
+static ssize_t ESRQHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 	return gScriptProcessor->HandleCommand(ESR_Q_CMD, strlen(ESR_Q_CMD), false);
 }
 
-ssize_t SREHandler(const char *lBuffer, size_t lLength)
+static ssize_t SREHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 	return 0;
 }
 
-ssize_t SREQHandler(const char *lBuffer, size_t lLength)
+static ssize_t SREQHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 	return gScriptProcessor->HandleCommand(SRE_Q_CMD, strlen(SRE_Q_CMD), false);
 }
 
-ssize_t STBQHandler(const char *lBuffer, size_t lLength)
+static ssize_t STBQHandler(const char *lBuffer, size_t lLength)
 {
+	(void) lBuffer; // Unused
+	(void) lLength; // Unused
 	return gScriptProcessor->HandleCommand(STB_Q_CMD, strlen(STB_Q_CMD), false);
 }
 
@@ -300,6 +326,7 @@ int ScriptProcessor::HandleCommand(const char *lBuffer, size_t lLength, bool lCh
 
 int ScriptProcessor::RunScript(const char *lScript, size_t lLength)
 {
+	(void) lLength; // Unused
 	int lResult = LoadString(lScript);
 
 	if(lResult)
@@ -348,6 +375,7 @@ void ScriptProcessor::RegisterHandler(TokenHandler lHandler, size_t lIndex)
 
 void ScriptProcessor::BackdoorInstall(lua_State *lState) {
 
+	(void) lState; // Unused
 	GetBackdoor();
 
 	/*
@@ -582,13 +610,17 @@ int StatelessScriptProcessor::Backdoor(lua_State *lState) {
 	return 1;
 }
 
-int StatelessScriptProcessor::BackdoorProtect(lua_State *lState) {
+int StatelessScriptProcessor::BackdoorProtect(lua_State *lState)
+{
+	(void) lState; // Unused
 	printf("%s\n", __func__);
 
 	return 0;
 }
 
-int StatelessScriptProcessor::BackdoorDebug(lua_State *lState) {
+int StatelessScriptProcessor::BackdoorDebug(lua_State *lState)
+{
+	(void) lState; // Unused
 	printf("%s\n", __func__);
 
 	return 0;

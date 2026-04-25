@@ -184,6 +184,8 @@ void Lua::REPL(void)
 
 void Lua::BackdoorInstall(lua_State *lState) {
 
+	(void) lState; // Unused
+
 	GetBackdoor();
 
 	/*

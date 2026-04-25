@@ -7,6 +7,9 @@
 
 #include <csignal>
 
+#include <arpa/inet.h>
+
+#include "scriptprocessor.hpp"
 #include "vxi11.hpp"
 
 using namespace VXI11;
@@ -16,97 +19,97 @@ inline static bool flag_bit_is_set(Device_Flags lFlags, Device_Flags lBit)
 	return static_cast<bool>((lFlags & lBit) >> lBit);
 }
 
-InstrumentServer *gInstrumentServer;
+extern VXI11Server gVxi11Server;
 static Device_Link sLinkID = -1;
 static bool sTermCharBitSet = false;
 
 Device_Error *VXI11::AbortWrapper(Device_Link *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->Abort(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->Abort(lArgp, lRqstp);
 }
 
 Create_LinkResp *VXI11::CreateLinkWrapper(Create_LinkParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->CreateLink(lArgp, lRqstp);
+	return gVxi11Server.CreateLink(lArgp, lRqstp);
 }
 
 Device_WriteResp *VXI11::WriteWrapper(Device_WriteParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->Write(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->Write(lArgp, lRqstp);
 }
 
 Device_ReadResp *VXI11::ReadWrapper(Device_ReadParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->Read(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->Read(lArgp, lRqstp);
 }
 
 Device_ReadStbResp *VXI11::ReadSTBWrapper(Device_GenericParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->ReadSTB(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->ReadSTB(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::TriggerWrapper(Device_GenericParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->Trigger(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->Trigger(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::ClearWrapper(Device_GenericParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->Clear(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->Clear(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::RemoteWrapper(Device_GenericParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->Remote(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->Remote(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::LocalWrapper(Device_GenericParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->Local(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->Local(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::LockWrapper(Device_LockParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->Lock(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->Lock(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::UnlockWrapper(Device_Link *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->Unlock(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->Unlock(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::EnableSRQWrapper(Device_EnableSrqParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->EnableSRQ(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->EnableSRQ(lArgp, lRqstp);
 }
 
 Device_DocmdResp *VXI11::DoCMDWrapper(Device_DocmdParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->DoCMD(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->DoCMD(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::DestroyLinkWrapper(Device_Link *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->DestroyLink(lArgp, lRqstp);
+	return gVxi11Server.DestroyLink(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::CreateInterruptChannelWrapper(Device_RemoteFunc *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->CreateInterruptChannel(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->CreateInterruptChannel(lArgp, lRqstp);
 }
 
 Device_Error *VXI11::DestroyInterruptChannelWrapper(void *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->DestroyInterruptChannel(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->DestroyInterruptChannel(lArgp, lRqstp);
 }
 
 void *VXI11::InterruptSRQWrapper(Device_SrqParms *lArgp, struct svc_req *lRqstp)
 {
-	return gInstrumentServer->GetDevice()->InterruptSRQ(lArgp, lRqstp);
+	return gVxi11Server.GetDevice()->InterruptSRQ(lArgp, lRqstp);
 }
 
 
-Server::Server(const char *lServer)
+InstrumentServer::InstrumentServer(const char *lServer)
 : mFileDescriptor{0}
 , mServerSocket{0}
 , mClientSocket{0}
@@ -152,7 +155,7 @@ Server::Server(const char *lServer)
     }
 }
 
-void Server::Main(void)
+void InstrumentServer::Main(void)
 {
     struct sockaddr_in lClientAddr;
     socklen_t lLen = sizeof(lClientAddr);
@@ -200,8 +203,8 @@ void Server::Main(void)
 	return;
 }
 
-InstrumentServer::InstrumentServer(const char *lServerName)
-: Server(lServerName)
+VXI11Server::VXI11Server(const char *lServerName)
+: InstrumentServer(lServerName)
 , mName{const_cast<char *>(lServerName)}
 , mLinkCreated{false}
 , mLocked{false}
@@ -221,35 +224,35 @@ InstrumentServer::InstrumentServer(const char *lServerName)
 	mTransportHandle = svctcp_create(GetServerSocket(), 0, 0);
 	if (mTransportHandle)
 	{
-		if (!svc_register(mTransportHandle, DEVICE_ASYNC, DEVICE_ASYNC_VERSION, InstrumentServer::DeviceAsync, IPPROTO_TCP))
+		if (!svc_register(mTransportHandle, DEVICE_ASYNC, DEVICE_ASYNC_VERSION, VXI11Server::DeviceAsync, IPPROTO_TCP))
 		{
 			fprintf(stderr, "%s", "unable to register (DEVICE_ASYNC, DEVICE_ASYNC_VERSION, tcp).");
 			exit(1);
 		}
-		if (!svc_register(mTransportHandle, DEVICE_CORE, DEVICE_CORE_VERSION, InstrumentServer::DeviceCore, IPPROTO_TCP)) {
+		if (!svc_register(mTransportHandle, DEVICE_CORE, DEVICE_CORE_VERSION, VXI11Server::DeviceCore, IPPROTO_TCP)) {
 			fprintf(stderr, "%s", "unable to register (DEVICE_CORE, DEVICE_CORE_VERSION, tcp).");
 			exit(1);
 		}
-		if (!svc_register(mTransportHandle, DEVICE_INTR, DEVICE_INTR_VERSION, InstrumentServer::DeviceInterrupt, IPPROTO_TCP)) {
+		if (!svc_register(mTransportHandle, DEVICE_INTR, DEVICE_INTR_VERSION, VXI11Server::DeviceInterrupt, IPPROTO_TCP)) {
 			fprintf(stderr, "%s", "unable to register (DEVICE_INTR, DEVICE_INTR_VERSION, tcp).");
 			exit(1);
 		}
 	}
 }
 
-InstrumentServer::~InstrumentServer()
+VXI11Server::~VXI11Server()
 {
 	;
 }
 
-void InstrumentServer::Main(void)
+void VXI11Server::Main(void)
 {
 	svc_run(); // Should not return
 	fprintf(stderr, "%s", "svc_run returned");
 	exit(1);
 }
 
-void InstrumentServer::DeviceAsync(struct svc_req *lRqstp, SVCXPRT *lTransportHandle)
+void VXI11Server::DeviceAsync(struct svc_req *lRqstp, SVCXPRT *lTransportHandle)
 {
 	union
 	{
@@ -300,7 +303,7 @@ void InstrumentServer::DeviceAsync(struct svc_req *lRqstp, SVCXPRT *lTransportHa
 	return;
 }
 
-void InstrumentServer::DeviceCore(struct svc_req *lRqstp, SVCXPRT *lTransportHandle)
+void VXI11Server::DeviceCore(struct svc_req *lRqstp, SVCXPRT *lTransportHandle)
 {
 	union
 	{
@@ -452,16 +455,16 @@ void InstrumentServer::DeviceCore(struct svc_req *lRqstp, SVCXPRT *lTransportHan
 	return;
 }
 
-void InstrumentServer::DeviceInterrupt(svc_req *lRqstp, SVCXPRT *lTransportHandle)
+void VXI11Server::DeviceInterrupt(svc_req *lRqstp, SVCXPRT *lTransportHandle)
 {
 	return;
 }
 
-Create_LinkResp *InstrumentServer::CreateLink(Create_LinkParms *lArgp, struct svc_req *lRqstp)
+Create_LinkResp *VXI11Server::CreateLink(Create_LinkParms *lArgp, struct svc_req *lRqstp)
 {
-	printf("%s: lArgp->device = %s\n", __func__, lArgp->device);
 	bool lLockDevice = static_cast<bool>(lArgp->lockDevice);
 	long lLockTimeout = lArgp->lock_timeout;
+	(void) lLockTimeout; // Unused
 
 	if (!mLinkCreated)
 	{
@@ -486,10 +489,8 @@ Create_LinkResp *InstrumentServer::CreateLink(Create_LinkParms *lArgp, struct sv
 	return &mResponse;
 }
 
-Device_Error *InstrumentServer::DestroyLink(Device_Link *lArgp, struct svc_req *lRqstp)
+Device_Error *VXI11Server::DestroyLink(Device_Link *lArgp, struct svc_req *lRqstp)
 {
-	printf("%s\n", __func__);
-
 	long lLinkId = *lArgp;
 	if (lLinkId == sLinkID)
 	{
@@ -507,7 +508,6 @@ Device_Error *InstrumentServer::DestroyLink(Device_Link *lArgp, struct svc_req *
 	}
 	else
 	{
-		printf("\terror attempting to destroy link id %ld; received %ld\n", sLinkID, lLinkId);
 		mError.error = static_cast<Device_ErrorCode>(4);
 	}
 
@@ -515,8 +515,7 @@ Device_Error *InstrumentServer::DestroyLink(Device_Link *lArgp, struct svc_req *
 }
 
 Device::Device()
-: ClientInterface(WEB_SERVER_CLIENT_NAME, COMMAND_SERVER_NAME)
-, mReadBuffer{0}
+: CommandInterface()
 {
 	memset(&mError, 0, sizeof(mError));
 	memset(&mWriteResponse, 0, sizeof(mWriteResponse));
@@ -543,38 +542,33 @@ Device_WriteResp *Device::Write(Device_WriteParms *lArgp, struct svc_req *lRqstp
 	unsigned int lDataLen = lArgp->data.data_len;
 	char *lData = lArgp->data.data_val;
 	Device_Flags lFlags = lArgp->flags;
-	memset(mWriteBuffer, 0, 2048);
-	memcpy(mWriteBuffer, lData, lDataLen);
-
-	printf("%s: lDataLen: %u; mWriteBuffer: %s; lFlags: %ld\n", __func__, lDataLen, mWriteBuffer, lFlags);
 
 	if (lLinkID != sLinkID)
 	{
 		mWriteResponse.error = static_cast<Device_ErrorCode>(4);
 	}
-
-	/*
-	 * Send the transfer size to the command server so it is ready to read the entire data sequence
-	 */
-	if (Send(reinterpret_cast<uint32_t *>(&lDataLen)) == -1)
-	{
-		// ERROR
-		perror("error sending size to command server\n");
-	}
 	else
 	{
-		ssize_t lCountBytesSent = Send(mWriteBuffer, lDataLen);
-		if (lCountBytesSent == -1)
+		mInputData.append(lData);
+
+		if (lFlags & END_BIT)
 		{
-			// ERROR
-			perror("error sending data to command server\n");
+			CommandMessage *lMessage = BuildMessage(
+				mInputData.c_str(),
+				mInputData.length(),
+				reinterpret_cast<void *>(gScriptProcessor)
+			);
+			Send(lMessage);
+			mInputData.clear();
 		}
 		else
 		{
-			// SUCCESS
-			mWriteResponse.size = lCountBytesSent;
-			mWriteResponse.error = static_cast<Device_ErrorCode>(0);
+			// We are expecting more data to arrive before we submit the data to the script processor
 		}
+			
+		// SUCCESS
+		mWriteResponse.size = lDataLen;
+		mWriteResponse.error = static_cast<Device_ErrorCode>(0);
 	}
 
 	return &mWriteResponse;
@@ -585,17 +579,20 @@ Device_ReadResp *Device::Read(Device_ReadParms *lArgp, struct svc_req *lRqstp)
 	Device_Link lLinkID = lArgp->lid;
 	unsigned long lRequestSize = lArgp->requestSize;
 	unsigned long lIOTimeout = lArgp->io_timeout;
+	(void) lIOTimeout; // Unused
 	unsigned long lLockTimeout = lArgp->lock_timeout;
+	(void) lLockTimeout; // Unused
 	Device_Flags lFlags = lArgp->flags;
 	char lTermChar = lArgp->termChar;
 
+	mOutputData.clear();
 
 	if (lLinkID != sLinkID)
 	{
 		// Bad link ID
 	}
 
-	if (flag_bit_is_set(lFlags, TERMCHRSET_BIT))
+	if (lFlags & TERMCHRSET_BIT)
 	{
 		sTermCharBitSet = true;
 	}
@@ -604,16 +601,10 @@ Device_ReadResp *Device::Read(Device_ReadParms *lArgp, struct svc_req *lRqstp)
 		sTermCharBitSet = false;
 	}
 
-	// First read the size from the command server
-	uint32_t lSize;
-	if (Receive(&lSize) <= 0)
-	{
-		perror("could not receive size from command server");
-		mReadResponse.error = static_cast<Device_ErrorCode>(17);
-	}
-
-	memset(mReadBuffer, 0, 2048);
-	int lLength = Receive(mReadBuffer, lSize);
+	CommandMessage *lMessage = Receive();
+	mOutputData = lMessage->GetData();
+	unsigned long lLength = lMessage->GetLength();
+	std::cout << __func__ << ": mOutputData length: " << mOutputData.length() << "; lRequestSize: " << lRequestSize << std::endl;
 	if (lLength < 0)
 	{
 		perror("receive from command server failed\n");
@@ -630,16 +621,18 @@ Device_ReadResp *Device::Read(Device_ReadParms *lArgp, struct svc_req *lRqstp)
 		}
 		if (sTermCharBitSet)
 		{
+			std::cout << __func__ << ": appending termchar" << std::endl;
 			mReadResponse.reason |= READ_REASON_CHR_BIT;
-			if (lLength < MAX_BUFFER_SIZE)
-			{
-				mReadBuffer[lLength] = lTermChar;
-				lLength += 1;
-			}
+			mOutputData += lTermChar;
 		}
-		mReadResponse.data.data_len = lLength;
-		mReadResponse.data.data_val = mReadBuffer;
+		std::cout << __func__ << ": sending output data with length " << mOutputData.length() << std::endl;
+		mReadResponse.data.data_len = mOutputData.length();
+		mReadResponse.data.data_val = const_cast<char *>(mOutputData.c_str());
 		mReadResponse.error = static_cast<Device_ErrorCode>(0);
+	}
+	if (lMessage)
+	{
+		delete lMessage;
 	}
 
 	return &mReadResponse;
@@ -699,8 +692,6 @@ Device_Error *Device::Unlock(Device_Link *lArgp, struct svc_req *lRqstp)
 
 Device_Error *Device::EnableSRQ(Device_EnableSrqParms *lArgp, struct svc_req *lRqstp)
 {
-	static Device_Error sError;
-
 	printf("%s\n", __func__);
 
 	return &mError;
@@ -805,7 +796,7 @@ static int InitDaemon(void)
 
     while(true)
     {
-    	gInstrumentServer->Main();
+    	gVxi11Server.Main();
     }
     return 0;
 }

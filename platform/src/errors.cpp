@@ -55,6 +55,7 @@ int ErrorController::HandleMsg(lua_State *lState) {
 	int lRet = 0;
 
 	ErrorController *lErrorController = static_cast<ErrorController *>(lLua.ToUserData(lLua.UpValueIndex(1)));
+	(void) lErrorController; // Unused
 
 	ErrorsFunctions lFunc = static_cast<ErrorsFunctions>(lLua.ToInteger(lLua.UpValueIndex(2)));
 
@@ -72,8 +73,8 @@ int ErrorController::HandleMsg(lua_State *lState) {
 	return lRet;
 }
 
-int ErrorController::FuncNext(lua_State *lState) {
-	printf("%s, %s\n", __FILE__, __func__);
+int ErrorController::FuncNext(lua_State *lState)
+{
 	Lua lLua(lState);
 
 	ErrorController *lController = static_cast<ErrorController *>(lLua.ToUserData(lLua.UpValueIndex(1)));

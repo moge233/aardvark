@@ -52,19 +52,19 @@ static constexpr char SRE_TOKEN[] = "*SRE ";
 static constexpr char SRE_Q_TOKEN[] = "*SRE? ";
 static constexpr char STB_Q_TOKEN[] = "*STB? ";
 
-static ssize_t IDNQHandler(const char *lBuffer, size_t lLength);
-static ssize_t CLSHandler(const char *lBuffer, size_t lLength);
-static ssize_t RSTHandler(const char *lBuffer, size_t lLength);
-static ssize_t TSTQHandler(const char *lBuffer, size_t lLength);
-static ssize_t OPCHandler(const char *lBuffer, size_t lLength);
-static ssize_t OPCQHandler(const char *lBuffer, size_t lLength);
-static ssize_t WAIHandler(const char *lBuffer, size_t lLength);
-static ssize_t ESEHandler(const char *lBuffer, size_t lLength);
-static ssize_t ESEQHandler(const char *lBuffer, size_t lLength);
-static ssize_t ESRQHandler(const char *lBuffer, size_t lLength);
-static ssize_t SREHandler(const char *lBuffer, size_t lLength);
-static ssize_t SREQHandler(const char *lBuffer, size_t lLength);
-static ssize_t STBQHandler(const char *lBuffer, size_t lLength);
+// ssize_t IDNQHandler(const char *lBuffer, size_t lLength);
+// ssize_t CLSHandler(const char *lBuffer, size_t lLength);
+// ssize_t RSTHandler(const char *lBuffer, size_t lLength);
+// ssize_t TSTQHandler(const char *lBuffer, size_t lLength);
+// ssize_t OPCHandler(const char *lBuffer, size_t lLength);
+// ssize_t OPCQHandler(const char *lBuffer, size_t lLength);
+// ssize_t WAIHandler(const char *lBuffer, size_t lLength);
+// ssize_t ESEHandler(const char *lBuffer, size_t lLength);
+// ssize_t ESEQHandler(const char *lBuffer, size_t lLength);
+// ssize_t ESRQHandler(const char *lBuffer, size_t lLength);
+// ssize_t SREHandler(const char *lBuffer, size_t lLength);
+// ssize_t SREQHandler(const char *lBuffer, size_t lLength);
+// ssize_t STBQHandler(const char *lBuffer, size_t lLength);
 
 enum DebugFunctions {
 	FUNC_GET_MANUFACTURER = 0,
