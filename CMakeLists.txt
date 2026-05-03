@@ -29,7 +29,6 @@ set(
 	drivers/rpcgen/vxi11_xdr.c
 	drivers/src/vxi11.cpp
 	platform/src/circularbuffer.cpp
-	platform/src/circularqueue.cpp
 	platform/src/commandinterface.cpp
 	platform/src/commandmessage.cpp
 	platform/src/endpoint.cpp
