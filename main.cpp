@@ -37,7 +37,7 @@ AardvarkDisplay *gDisplay;
 OsalThread *gUsbTmcMonitorThread;
 std::atomic<bool> gStop{false};
 UsbTmc gUsbTmc;
-VXI11Server gVxi11Server("192.168.1.196");
+VXI11Server gVxi11Server("192.168.1.197");
 
 #ifdef DAEMONIZE
 static int InitDaemon(void);
