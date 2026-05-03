@@ -39,7 +39,6 @@ private:
 	uint32_t mRemoteLocalState;	// RemoteLocalState file descriptor
 	struct UsbTmcXferBuffer mXferBuffers[16];
 	size_t mBulkXferIndex;
-	gadget_tmc_header mHeader;
 
 public:
 	UsbTmc(void);
@@ -49,18 +48,18 @@ public:
 
 	inline const int &GetFileDescriptor() const { return mFileDescriptor; }
 
-	string ServiceBulkOut(gadget_tmc_header *lHeader);
+	string ServiceBulkOut(struct gadget_tmc_header *lHeader);
 	void ServiceBulkIn(string lData);
 	void Output(const char *lBuffer, size_t lLength);
-	bool GetHeader(gadget_tmc_header *lHeader);
+	bool GetHeader(struct gadget_tmc_header *lHeader);
 	bool Poll(void);
 	void AbortBulkOut(void);
 	void AbortBulkIn(void);
 	void SetREN(uint8_t lNewREN);
 	uint8_t GetREN(void);
 
-	void SetRemoteLocalState(gadget_tmc488_localremote_state lNewState);
-	gadget_tmc488_localremote_state GetRemoteLocalState(void);
+	void SetRemoteLocalState(enum gadget_tmc488_localremote_state lNewState);
+	enum gadget_tmc488_localremote_state GetRemoteLocalState(void);
 	void SetStatusByte(uint32_t lNewStb);
 	uint32_t GetStatusByte(void);
 };

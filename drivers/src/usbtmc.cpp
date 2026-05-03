@@ -27,7 +27,6 @@ UsbTmc::UsbTmc(void)
 : CommandInterface()
 , Monitor("tmc")
 , mBulkXferIndex(0)
-, mHeader({0, 0, 0, 0, 0, 0, 0})
 {
 	for(size_t i=0; i<16; i++)
 	{
@@ -51,7 +50,7 @@ UsbTmc::~UsbTmc(void)
 	close(mFileDescriptor);
 }
 
-string UsbTmc::ServiceBulkOut(gadget_tmc_header *lHeader)
+string UsbTmc::ServiceBulkOut(struct gadget_tmc_header *lHeader)
 {
 	string lDataString;
 	uint32_t lBytesRemaining = lHeader->TransferSize;
@@ -103,7 +102,7 @@ void UsbTmc::Output(const char *lBuffer, size_t lLength)
 	}
 }
 
-bool UsbTmc::GetHeader(gadget_tmc_header *lHeader)
+bool UsbTmc::GetHeader(struct gadget_tmc_header *lHeader)
 {
 	if (!ioctl(mFileDescriptor, GADGET_TMC_IOCTL_GET_HEADER, lHeader))
 	{
